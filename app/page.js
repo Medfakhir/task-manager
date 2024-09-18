@@ -15,7 +15,17 @@ export default function Home() {
     const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
     const savedDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
-    if (savedTasks.length > 0) {
+    // Check if there are no tasks, and if so, add a default task
+    if (savedTasks.length === 0) {
+      const defaultTask = {
+        title: 'Default Task',
+        subtasks: [],
+        currentSubtask: '',
+        completed: false,
+        isEditing: false,
+      };
+      setTasks([defaultTask]);
+    } else {
       setTasks(savedTasks); // Set the tasks state from localStorage
     }
 
