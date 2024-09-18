@@ -10,34 +10,19 @@ export default function Home() {
   const [taskToDelete, setTaskToDelete] = useState(null); // Track task to delete
   const [isModalOpen, setIsModalOpen] = useState(false); // Track if modal is open
 
-  // Check if default task has been deleted before
-  const [isDefaultTaskDeleted, setIsDefaultTaskDeleted] = useState(
-    JSON.parse(localStorage.getItem('isDefaultTaskDeleted')) || false
-  );
-
   // Load tasks and dark mode from localStorage when the component mounts
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
     const savedDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
-    // Add a default task only if there are no tasks and it hasn't been deleted before
-    if (savedTasks.length === 0 && !isDefaultTaskDeleted) {
-      const defaultTask = {
-        title: 'Default Task',
-        subtasks: [],
-        currentSubtask: '',
-        completed: false,
-        isEditing: false,
-      };
-      setTasks([defaultTask]);
-    } else {
+    if (savedTasks.length > 0) {
       setTasks(savedTasks); // Set the tasks state from localStorage
     }
 
     if (savedDarkMode !== null) {
       setDarkMode(savedDarkMode); // Set dark mode from localStorage
     }
-  }, [isDefaultTaskDeleted]);
+  }, []);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
@@ -167,13 +152,6 @@ export default function Home() {
     if (taskToDelete !== null) {
       const updatedTasks = tasks.filter((_, i) => i !== taskToDelete);
       setTasks(updatedTasks);
-
-      // If the deleted task is the default task, set the flag to true
-      if (tasks[taskToDelete]?.title === 'Default Task') {
-        localStorage.setItem('isDefaultTaskDeleted', JSON.stringify(true));
-        setIsDefaultTaskDeleted(true);
-      }
-
       setTaskToDelete(null); // Reset taskToDelete
       setIsModalOpen(false); // Close modal
     }
