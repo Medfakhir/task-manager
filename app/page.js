@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { FaSun, FaMoon, FaPlus, FaTrashAlt, FaEdit, FaSave } from 'react-icons/fa';
+import { FaSun, FaMoon, FaPlus, FaTrashAlt, FaEdit, FaSave,FaDrawPolygon } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 export default function Home() {
   const [tasks, setTasks] = useState([]);
@@ -13,7 +14,16 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [newSubtask, setNewSubtask] = useState('');
+  const [subtaskInputs, setSubtaskInputs] = useState({});
 
+  
+
+  const handleSubtaskInputChange = (taskIndex, value) => {
+    setSubtaskInputs({
+      ...subtaskInputs,
+      [taskIndex]: value
+    });
+  };
   // Load tasks and dark mode from localStorage when the component mounts
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -21,7 +31,16 @@ export default function Home() {
 
     if (savedTasks.length > 0) {
       setTasks(savedTasks);
+
+      const initialSubtaskInputs = savedTasks.reduce((acc, _, index) => {
+        acc[index] = '';
+        return acc;
+      }, {});
+      
+      setSubtaskInputs(initialSubtaskInputs);
     }
+
+    
 
     if (savedDarkMode !== null) {
       setDarkMode(savedDarkMode);
@@ -68,17 +87,20 @@ export default function Home() {
 
   // Handle adding a subtask to a specific task
   const handleAddSubtask = (taskIndex) => {
-    if (newSubtask.trim()) {
+    if (subtaskInputs[taskIndex]?.trim()) {  // Changed from newSubtask to subtaskInputs[taskIndex]
       const updatedTasks = tasks.map((task, index) =>
         index === taskIndex
-          ? { ...task, subtasks: [...task.subtasks, { text: newSubtask, completed: false, isEditing: false }] }
+          ? { ...task, subtasks: [...task.subtasks, { text: subtaskInputs[taskIndex], completed: false, isEditing: false }] }  // Changed from newSubtask to subtaskInputs[taskIndex]
           : task
       );
       setTasks(updatedTasks);
-      setNewSubtask('');
+      // Clear only this task's input
+      setSubtaskInputs({
+        ...subtaskInputs,
+        [taskIndex]: ''
+      });
     }
   };
-
   // Handle deleting a task
   const handleDeleteTask = (index) => {
     const updatedTasks = tasks.filter((_, i) => i !== index);
@@ -196,6 +218,17 @@ export default function Home() {
             >
               <FaPlus className="text-sm" /> New Task
             </button>
+
+            <button
+              className="px-4 py-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-lg shadow-blue-500/20 transition-all duration-200 flex items-center gap-2"
+            >
+              <Link href="/NotesPage" passHref>
+                <span className="flex items-center gap-2">
+                  <FaDrawPolygon className="text-sm" /> Notes Page
+                </span>
+              </Link>
+            </button>
+
             <button
               onClick={toggleDarkMode}
               className={`p-2 rounded-full transition-all duration-200 ${
@@ -346,17 +379,20 @@ export default function Home() {
 
                 {/* Add Subtask Input */}
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newSubtask}
-                    onChange={(e) => setNewSubtask(e.target.value)}
-                    placeholder="Add a subtask"
-                    className={`flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      darkMode 
-                        ? 'bg-gray-700 border-gray-600' 
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  />
+                <input
+                  type="text"
+                  value={subtaskInputs[taskIndex] || ''}
+                  onChange={(e) => setSubtaskInputs({
+                    ...subtaskInputs,
+                    [taskIndex]: e.target.value
+                  })}
+                  placeholder="Add a subtask"
+                  className={`flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600' 
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                />
                   <button
                     onClick={() => handleAddSubtask(taskIndex)}
                     className="px-3 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
